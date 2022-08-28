@@ -1,0 +1,25 @@
+{
+  "name": "fabrica3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "ejs": "^3.1.8",
+    "express-session": "^1.17.3",
+    "mongo": "^0.1.0",
+    "mongodb": "^4.9.0",
+    "mongoose": "^6.5.3",
+    "mysql2": "^2.3.3",
+    "session": "^0.1.0"
+  }
+}
