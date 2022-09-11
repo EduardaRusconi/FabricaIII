@@ -1,10 +1,135 @@
+require('dotenv').config()
 const router = require('express').Router()
 const Sub = require('../models/sub.js')
 const Sponsor = require('../models/sponsor.js')
+const User = require('../models/User.js')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const bodyParser = require('body-parser')
+
 
 router.use(bodyParser.json()) // for parsing application/json
 router.use(bodyParser.urlencoded({ extended: true }))
+
+
+
+router.post('/login', async (req, res) =>{
+    const {name, login, password} = req.body
+
+    if(!name || !login || !password){
+        return res.status(422).json({"msg": "Preencha todos os campos!"})
+    }
+    if (!password){
+        return res.status(422).json({ "msg": "Senhas não conferem"})
+    }
+
+    const UserExists = await User.findOne({ login: login})
+    if(UserExists){
+        return res.status(422).json({ "msg": "Login ja cadastrado"})
+    }
+
+    const salt = await bcrypt.genSalt(12)
+    const passwordHash = await bcrypt.hash(password, salt)
+
+    const user = new User ({
+        name,
+        login,
+        password: passwordHash,
+        
+    })
+
+    try{
+        
+
+        await user.save()
+        res.status(201).json({"msg": 'Login cadastrado'})
+
+    } catch (error){
+        res.status(500).json({error: error})
+    }
+
+
+    //const checkpassword = await bcrypt.compare()
+})
+
+function checkToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+  
+    if (!token) return res.status(401).json({ msg: "Acesso negado!" });
+  
+    try {
+      const secret = "fhdsajkhfdjklsFDSAFDSAfhdsajfdsa10324sad65fdsFDSAfdsa45f4dsa"
+  
+      jwt.verify(token, secret);
+  
+      next();
+    } catch (err) {
+      res.status(400).json({ msg: "O Token é inválido!" });
+    }
+  }
+
+router.post('/login/auth', async (req, res)=>{
+    const {login, password} = req.body
+
+    if(!login || !password){
+        res.status(422).json({msg: 'Email/senha necessario'})
+    }
+
+    const user = await User.findOne({ login: login})
+    if(!user){
+        return res.status(422).json({ "msg": "Login não encontrado"})
+    }
+    
+    const checkpassword = await bcrypt.compare(password, user.password)
+
+    if(!checkpassword){
+        return res.status(422).json({"msg": 'Senha invalida'})
+    }
+
+    try{
+        const secret = "fhdsajkhfdjklsFDSAFDSAfhdsajfdsa10324sad65fdsFDSAfdsa45f4dsa"
+        const token = jwt.sign(
+        {
+            id: user._id
+        },
+        secret
+        )
+        res.status(200).json({msg: 'Autenticação realizada com sucesso', token})
+    } catch(error){
+        res.status(500).json({error: error})
+    }
+
+})
+
+router.get('/login/:id', checkToken, async (req, res) =>{
+    const id = req.params.id
+
+    const user = await User.findById(id, '-password')
+    if(!user){
+        return res.status(404).json({msg: 'Usuario não encontrado'})
+    }
+    res.status(200).json({ user })
+})
+
+function checkToken(req, res, next){
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if(!token){
+        return res.status(401).json({msg: 'Acesso negado!'})
+    }
+    try {
+        const secret = "fhdsajkhfdjklsFDSAFDSAfhdsajfdsa10324sad65fdsFDSAfdsa45f4dsa"
+        jwt.verify(token, secret)
+
+        next()
+    } catch (error) {
+        res.status(400).json({msg: 'Token invalido!'})
+    }
+}
+
+
 
 router.get('/sub', async (req,res) =>{
     
