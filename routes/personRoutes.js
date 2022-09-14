@@ -1,4 +1,4 @@
-require('dotenv').config()
+
 const router = require('express').Router()
 const Sub = require('../models/sub.js')
 const Sponsor = require('../models/sponsor.js')
@@ -6,6 +6,7 @@ const User = require('../models/User.js')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const bodyParser = require('body-parser')
+
 
 
 router.use(bodyParser.json()) // for parsing application/json
@@ -40,7 +41,6 @@ router.post('/login', async (req, res) =>{
 
     try{
         
-
         await user.save()
         res.status(201).json({"msg": 'Login cadastrado'})
 
@@ -110,6 +110,16 @@ router.get('/login/:id', checkToken, async (req, res) =>{
         return res.status(404).json({msg: 'Usuario não encontrado'})
     }
     res.status(200).json({ user })
+})
+
+router.get('/login/sub/:id', checkToken, async (req, res) =>{
+    const id = req.params.id
+
+    const subCheck = await Sub.findById(id)
+    if(!subCheck){
+        return res.status(404).json({msg: 'Usuario não encontrado'})
+    }
+    res.status(200).json({ subCheck })
 })
 
 function checkToken(req, res, next){
