@@ -5,7 +5,7 @@ const app = express();
 const port = 3000;
 var path = require('path')
 
-const router = require('./routes/personRoutes.js')
+const router = require('./server/routes/personRoutes.js')
 
 app.use(router)
 app.use(express.json());
